@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Question Details{% endblock %}
+
+{% block content %}
+
+<h4>{{ question.title }}</h4>
+<p>{{ question.content }}</p>
+
+<h4>Answers</h4>
+<ul>
+    {% for answer in question.answer_set.all %}
+        <li>
+            {{ answer.content }}
+            <button class="like-answer-button" data-answer-id="{{ answer.id }}">
+                {% if user in answer.likes.all %}
+                    Unlike
+                {% else %}
+                    Like
+                {% endif %}
+            </button>
+            <span class="answer-likes-count-{{ answer.id }}">{{ answer.likes.count }}</span>
+        </li>
+    {% endfor %}
+</ul>
+
+<a href="{% url 'qna:provide_answer' question.id %}">Write an Answer</a>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const likeButtons = document.querySelectorAll('.like-button, .like-answer-button');
+
+        likeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const itemId = button.getAttribute('data-item-id');
+                const isQuestion = button.classList.contains('like-button');
+                const endpoint = isQuestion ? 'like' : 'like-answer';  // Use 'like-answer' for answers
+
+                fetch(`/qna/${endpoint}/${itemId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.liked) {
+                            button.innerText = 'Unlike';
+                            const likesCount = document.querySelector(`.likes-count-${itemId}`);
+                            if (likesCount) {
+                                likesCount.innerText = data.likes_count;
+                            }
+                        } else {
+                            button.innerText = 'Like';
+                            // Update likes count here
+                            const likesCount = document.querySelector(`.likes-count-${itemId}`);
+                            if (likesCount) {
+                                likesCount.innerText = data.likes_count;
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            });
+        });
+    });
+</script>
+
+
+
+
+{% endblock %}

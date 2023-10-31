@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}All Questions{% endblock %}
+
+{% block content %}
+<style>
+    a{
+        color: black;
+    }
+</style>
+<div class="container">
+
+<h1>Questions</h1>
+<ul>
+    {% for question in questions %}
+        <li>
+            <a href="{% url 'qna:question_detail' question.id %}">{{ question.title }}</a>
+            <button class="like-button" data-question-id="{{ question.id }}">
+                {% if user in question.likes.all %}
+                    Unlike
+                {% else %}
+                    Like
+                {% endif %}
+            </button>
+            <span class="likes-count-{{ question.id }}">{{ question.likes.count }}</span>
+        </li>
+    {% endfor %}
+</ul>
+<h4><a href="{% url 'qna:post_question' %}">Post a Question</a></h4>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const likeButtons = document.querySelectorAll('.like-button');
+
+        likeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const questionId = button.getAttribute('data-question-id');
+                console.log("questionId:", questionId)
+                const likesCount = document.querySelector(`.likes-count-${questionId}`);
+                
+                fetch(`/qna/like/${questionId}/`)
+
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.liked) {
+                            button.innerText = 'Unlike';
+                            likesCount.innerText = data.likes_count;
+                        } else {
+                            button.innerText = 'Like';
+                            likesCount.innerText = data.likes_count;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            });
+        });
+    });
+</script>
+
+{% endblock content %}
